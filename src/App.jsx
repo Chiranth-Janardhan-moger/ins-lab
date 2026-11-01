@@ -46,6 +46,19 @@ export default function App() {
   const copyAllPrograms = () => {
     const combinedCode = experimentsData
       .map((exp) => {
+        if (exp.parts && exp.parts.length > 0) {
+          return exp.parts
+            .map((p) => `/* ====================================================================
+   PROGRAM ${String(exp.number).padStart(2, '0')} [${p.label}]: ${exp.title}
+   Technology: ${exp.technology}
+   File: ${p.file}
+   Compilation: ${p.compileCommand || exp.compileCommand}
+   Execution:   ${p.runCommand || exp.runCommand}
+   ==================================================================== */
+
+${p.code}`)
+            .join('\n\n\n');
+        }
         return `/* ====================================================================
    PROGRAM ${String(exp.number).padStart(2, '0')}: ${exp.title}
    Technology: ${exp.technology}

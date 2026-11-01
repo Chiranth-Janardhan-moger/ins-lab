@@ -512,6 +512,45 @@ body {
   border: 1px solid rgba(244, 114, 182, 0.2);
 }
 
+/* Method / Part Tabs for Multi-part Experiments */
+.method-tabs-container {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: rgba(236, 72, 153, 0.07);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 6px;
+}
+
+.method-tab-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.method-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(236, 72, 153, 0.12);
+}
+
+.method-tab-btn.active {
+  background: #ffffff;
+  color: var(--accent-primary);
+  font-weight: 600;
+  border-color: rgba(244, 114, 182, 0.45);
+  box-shadow: 0 4px 14px rgba(219, 39, 119, 0.14);
+}
+
 /* Code Mode Toggle (College vs New / Reduced) */
 .code-mode-toggle {
   display: inline-flex;

@@ -9,6 +9,7 @@ export default function CardDetail() {
   const [toastVisible, setToastVisible] = useState(false);
   const [codeMode, setCodeMode] = useState('college'); // 'college' | 'new'
   const [copiedRecently, setCopiedRecently] = useState(false);
+  const [selectedPartId, setSelectedPartId] = useState('freq');
 
   // Synchronous lookup: handles "1", "01", number 1, or filename like "prog1"
   const rawId = id ? String(id).trim() : '';
@@ -33,9 +34,18 @@ export default function CardDetail() {
     );
   }
 
+  const hasParts = Array.isArray(experiment.parts) && experiment.parts.length > 0;
+  const activePart = hasParts 
+    ? (experiment.parts.find(p => p.id === selectedPartId) || experiment.parts[0]) 
+    : experiment;
+
   const isNew = codeMode === 'new';
-  const activeCode = isNew && experiment.reducedCode ? experiment.reducedCode : experiment.code;
-  const activeFile = isNew && experiment.reducedFile ? experiment.reducedFile : experiment.file;
+  const activeCode = isNew && activePart.reducedCode ? activePart.reducedCode : activePart.code;
+  const activeFile = isNew && activePart.reducedFile ? activePart.reducedFile : activePart.file;
+  const activeCompileCommand = activePart.compileCommand || experiment.compileCommand;
+  const activeRunCommand = activePart.runCommand || experiment.runCommand;
+  const activeOutput = activePart.sampleOutput || experiment.sampleOutput;
+  const activeSavings = activePart.savings || experiment.savings;
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -53,7 +63,7 @@ export default function CardDetail() {
   };
 
   const copyCompileCommand = () => {
-    navigator.clipboard.writeText(`${experiment.compileCommand}\n${experiment.runCommand}`)
+    navigator.clipboard.writeText(`${activeCompileCommand}\n${activeRunCommand}`)
       .then(() => showToast('Commands Copied Successfully'))
       .catch((err) => console.error('Failed to copy command:', err));
   };
@@ -111,6 +121,27 @@ export default function CardDetail() {
         </p>
       </div>
 
+      {/* Multi-part Method Selector (e.g. Frequency Analysis vs Brute Force) */}
+      {hasParts && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <span style={{ fontSize: '12px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--text-secondary)' }}>
+            Implementation Mode
+          </span>
+          <div className="method-tabs-container">
+            {experiment.parts.map((part) => (
+              <button
+                key={part.id}
+                type="button"
+                className={`method-tab-btn ${activePart.id === part.id ? 'active' : ''}`}
+                onClick={() => setSelectedPartId(part.id)}
+              >
+                {part.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* C Source Code Section */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
@@ -118,9 +149,9 @@ export default function CardDetail() {
             <h4 style={{ fontSize: '13px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--text-secondary)' }}>
               Source Code ({activeFile})
             </h4>
-            {isNew && experiment.savings && (
+            {isNew && activeSavings && (
               <span className="badge-pill badge-crypto" style={{ fontSize: '10px', padding: '2px 8px' }}>
-                {experiment.savings}
+                {activeSavings}
               </span>
             )}
           </div>
@@ -199,10 +230,10 @@ export default function CardDetail() {
           border: '1px solid var(--glass-border)'
         }}>
           <div style={{ userSelect: 'all', marginBottom: '4px' }}>
-            <span style={{ color: 'var(--accent-primary)', fontWeight: '600' }}>$ </span>{experiment.compileCommand}
+            <span style={{ color: 'var(--accent-primary)', fontWeight: '600' }}>$ </span>{activeCompileCommand}
           </div>
           <div style={{ userSelect: 'all' }}>
-            <span style={{ color: 'var(--accent-primary)', fontWeight: '600' }}>$ </span>{experiment.runCommand}
+            <span style={{ color: 'var(--accent-primary)', fontWeight: '600' }}>$ </span>{activeRunCommand}
           </div>
         </div>
       </div>
@@ -223,7 +254,7 @@ export default function CardDetail() {
           overflowX: 'auto',
           whiteSpace: 'pre'
         }}>
-          <code>{experiment.sampleOutput}</code>
+          <code>{activeOutput}</code>
         </div>
       </div>
 
