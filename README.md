@@ -1,5 +1,7 @@
 # Information and Network Security Laboratory (INS Lab)
 
+Live Portal: https://inslab.vercel.app/
+
 Interactive web portal and reference manual for the Information and Network Security Laboratory course under the CBCS Scheme, BMS Institute of Technology and Management (Autonomous Institute under VTU).
 
 ## Course Overview
