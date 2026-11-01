@@ -1,0 +1,72 @@
+{
+  "courseCode": "INS Lab",
+  "courseTitle": "Information and Network Security Laboratory",
+  "institution": "BMS Institute of Technology & Management",
+  "department": "Department of Computer Science and Engineering",
+  "affiliation": "Autonomous Institute under VTU",
+  "semester": "B.E. Computer Science and Engineering - Semester VII",
+  "scheme": "CBCS 2022 Scheme",
+  "credits": {
+    "hours": "0:0:1:0",
+    "credits": 1,
+    "cie": 50,
+    "see": 50,
+    "examHours": 3
+  },
+  "objectives": [
+    "Design and implement classical substitution and transposition cryptographic algorithms.",
+    "Perform cryptanalysis techniques including frequency analysis and exhaustive key search.",
+    "Understand secure hashing principles and demonstrate vulnerability to collision attacks like the Birthday Attack."
+  ],
+  "outcomes": [
+    {
+      "code": "CO1",
+      "desc": "Implement classical encryption and decryption algorithms such as Caesar, Vigenère, and Transposition ciphers."
+    },
+    {
+      "code": "CO2",
+      "desc": "Analyze ciphertexts using statistical frequency analysis and brute-force cryptanalysis techniques."
+    },
+    {
+      "code": "CO3",
+      "desc": "Simulate hash collision vulnerabilities to understand cryptographic integrity and birthday attack bounds."
+    }
+  ],
+  "setupGuide": [
+    {
+      "step": 1,
+      "title": "Install GCC Compiler",
+      "desc": "Install standard C compiler build tools on Linux or Ubuntu WSL:",
+      "commands": [
+        "sudo apt update",
+        "sudo apt install build-essential"
+      ]
+    },
+    {
+      "step": 2,
+      "title": "Verify Installation",
+      "desc": "Check compiler version:",
+      "commands": [
+        "gcc --version"
+      ]
+    },
+    {
+      "step": 3,
+      "title": "Create Working Directory",
+      "desc": "Create a workspace folder for the lab experiments:",
+      "commands": [
+        "mkdir ~/INS_Lab",
+        "cd ~/INS_Lab"
+      ]
+    },
+    {
+      "step": 4,
+      "title": "Compile and Execute Programs",
+      "desc": "Standard compilation and execution commands for C programs:",
+      "commands": [
+        "gcc prog1_caesar.c -o prog1_caesar",
+        "./prog1_caesar"
+      ]
+    }
+  ]
+}
