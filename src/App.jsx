@@ -21,6 +21,7 @@ function MainLayout() {
 export default function App() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -99,6 +100,68 @@ ${exp.code}`;
                 <line x1="10" y1="14" x2="21" y2="3"></line>
               </svg>
             </a>
+
+            {/* History Dropdown */}
+            <div 
+              className="history-menu-container"
+              onMouseEnter={() => setHistoryOpen(true)}
+              onMouseLeave={() => setHistoryOpen(false)}
+            >
+              <button 
+                type="button"
+                className={`glass-btn history-trigger-btn ${historyOpen ? 'active' : ''}`}
+                onClick={() => setHistoryOpen(!historyOpen)}
+                title="Previous Course Labs (ML & Docker)"
+                aria-label="Previous Course Labs"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                  <path d="M12 7v5l4 2" />
+                </svg>
+              </button>
+
+              {historyOpen && (
+                <div className="history-dropdown-card fade-in">
+                  <div className="history-dropdown-header">
+                    Course Labs
+                  </div>
+                  <a 
+                    href="https://ml26.vercel.app/" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="history-dropdown-item"
+                    title="Machine Learning Lab"
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="history-bullet" />
+                      <span>ML</span>
+                    </div>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="7" y1="17" x2="17" y2="7"></line>
+                      <polyline points="7 7 17 7 17 17"></polyline>
+                    </svg>
+                  </a>
+
+                  <a 
+                    href="https://devops26.vercel.app/" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="history-dropdown-item"
+                    title="DevOps / Docker Lab"
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="history-bullet" />
+                      <span>Docker</span>
+                    </div>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="7" y1="17" x2="17" y2="7"></line>
+                      <polyline points="7 7 17 7 17 17"></polyline>
+                    </svg>
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
