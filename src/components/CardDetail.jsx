@@ -7,6 +7,8 @@ export default function CardDetail() {
   const { id } = useParams();
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  const [codeMode, setCodeMode] = useState('college'); // 'college' | 'new'
+  const [copiedRecently, setCopiedRecently] = useState(false);
 
   // Synchronous lookup: handles "1", "01", number 1, or filename like "prog1"
   const rawId = id ? String(id).trim() : '';
@@ -31,14 +33,22 @@ export default function CardDetail() {
     );
   }
 
+  const isNew = codeMode === 'new';
+  const activeCode = isNew && experiment.reducedCode ? experiment.reducedCode : experiment.code;
+  const activeFile = isNew && experiment.reducedFile ? experiment.reducedFile : experiment.file;
+
   const showToast = (msg) => {
     setToastMessage(msg);
     setToastVisible(true);
   };
 
   const copyCode = () => {
-    navigator.clipboard.writeText(experiment.code)
-      .then(() => showToast('C Code Copied Successfully'))
+    navigator.clipboard.writeText(activeCode)
+      .then(() => {
+        showToast(`${isNew ? 'New (Reduced)' : 'College'} Code Copied Successfully`);
+        setCopiedRecently(true);
+        setTimeout(() => setCopiedRecently(false), 2000);
+      })
       .catch((err) => console.error('Failed to copy code:', err));
   };
 
@@ -65,7 +75,7 @@ export default function CardDetail() {
           <button onClick={copyCompileCommand} className="glass-btn" title="Copy compile & run commands">
             Copy Commands
           </button>
-          <button onClick={copyCode} className="glass-btn glass-btn-primary" title="Copy full C source code">
+          <button onClick={copyCode} className="glass-btn glass-btn-primary" title="Copy current C source code">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -101,33 +111,75 @@ export default function CardDetail() {
         </p>
       </div>
 
-      {/* C Source Code */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h4 style={{ fontSize: '13px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--text-secondary)' }}>
-            Source Code ({experiment.file})
-          </h4>
-          <button onClick={copyCode} className="glass-btn" style={{ padding: '3px 10px', fontSize: '11px' }}>
-            Copy
-          </button>
+      {/* C Source Code Section */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h4 style={{ fontSize: '13px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--text-secondary)' }}>
+              Source Code ({activeFile})
+            </h4>
+            {isNew && experiment.savings && (
+              <span className="badge-pill badge-crypto" style={{ fontSize: '10px', padding: '2px 8px' }}>
+                {experiment.savings}
+              </span>
+            )}
+          </div>
+
+          {/* Toggle Pills: [ College | New ] */}
+          <div className="code-mode-toggle" title="Switch between College manual code and New reduced code">
+            <button
+              type="button"
+              className={`code-toggle-btn ${!isNew ? 'active' : ''}`}
+              onClick={() => setCodeMode('college')}
+            >
+              College
+            </button>
+            <button
+              type="button"
+              className={`code-toggle-btn ${isNew ? 'active' : ''}`}
+              onClick={() => setCodeMode('new')}
+            >
+              New
+            </button>
+          </div>
         </div>
 
-        <div className="glass-panel" style={{
-          borderRadius: '10px',
-          overflow: 'hidden',
-          background: 'var(--code-bg)',
-          border: '1px solid var(--glass-border)'
-        }}>
+        {/* Code Panel with Top-Right Floating Copy Icon */}
+        <div className="code-box-container">
+          <button 
+            onClick={copyCode} 
+            className="code-copy-floating-btn" 
+            title="Copy code to clipboard"
+            aria-label="Copy code"
+          >
+            {copiedRecently ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Copy</span>
+              </>
+            )}
+          </button>
+
           <pre style={{
-            padding: '16px',
+            padding: '18px 20px',
             margin: 0,
             overflowX: 'auto',
             fontFamily: 'var(--font-mono)',
             fontSize: '13px',
             color: 'var(--code-text)',
-            lineHeight: '1.55'
+            lineHeight: '1.6'
           }}>
-            <code>{experiment.code}</code>
+            <code>{activeCode}</code>
           </pre>
         </div>
       </div>
