@@ -267,6 +267,53 @@ body {
   background: var(--accent-primary);
 }
 
+/* Portal Top Header Bar */
+.portal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 24px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid var(--glass-border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.portal-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.3px;
+  transition: opacity 0.2s ease;
+}
+
+.portal-brand:hover {
+  opacity: 0.85;
+}
+
+.portal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .portal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .portal-header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
 /* Custom layout modules utilities */
 .container-box {
   width: 100%;

@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import LabBoard from './components/LabBoard';
 import CardDetail from './components/CardDetail';
+import Toast from './components/Toast';
+import experimentsData from './data/experiments.json';
 import './App.css';
 
 function MainLayout() {
@@ -16,6 +19,37 @@ function MainLayout() {
 }
 
 export default function App() {
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setToastVisible(true);
+  };
+
+  const copyAllPrograms = () => {
+    const combinedCode = experimentsData
+      .map((exp) => {
+        return `/* ====================================================================
+   PROGRAM ${String(exp.number).padStart(2, '0')}: ${exp.title}
+   Technology: ${exp.technology}
+   File: ${exp.file}
+   Compilation: ${exp.compileCommand}
+   Execution:   ${exp.runCommand}
+   ==================================================================== */
+
+${exp.code}`;
+      })
+      .join('\n\n\n');
+
+    navigator.clipboard.writeText(combinedCode)
+      .then(() => showToast('All 5 Lab Programs Copied Successfully!'))
+      .catch((err) => {
+        console.error('Failed to copy all programs:', err);
+        showToast('Failed to copy programs to clipboard');
+      });
+  };
+
   return (
     <div className="app-container" style={{ padding: '20px 0' }}>
       {/* Dynamic Floating Backdrop Pink Orbs */}
@@ -27,6 +61,47 @@ export default function App() {
 
       {/* Main Core View Area */}
       <main className="container-box fade-in" style={{ flexGrow: '1' }}>
+        {/* Top Header Navigation Bar */}
+        <header className="portal-header">
+          <Link to="/" className="portal-brand" title="INS Lab Portal Home">
+            <svg width="24" height="24" viewBox="0 0 48 48" fill="none" style={{ display: 'block' }}>
+              <path d="M24 4L7 11V22C7 32.5 14.3 42.2 24 44.5C33.7 42.2 41 32.5 41 22V11L24 4Z" fill="var(--accent-primary)" stroke="#be185d" strokeWidth="2" />
+              <rect x="18" y="23" width="12" height="10" rx="2.5" fill="#ffffff" />
+              <path d="M20 23V19C20 16.8 21.8 15 24 15C26.2 15 28 16.8 28 19V23" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+            <span>INS Lab</span>
+          </Link>
+
+          <div className="portal-header-actions">
+            <button 
+              onClick={copyAllPrograms} 
+              className="glass-btn" 
+              title="Copy all 5 lab programs completely to clipboard"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy All Programs
+            </button>
+
+            <a 
+              href="https://pclab26.vercel.app/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="glass-btn glass-btn-primary" 
+              title="Open Parallel Computing Lab Portal"
+            >
+              <span>PC Lab</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
+          </div>
+        </header>
+
         <Routes>
           <Route path="/" element={<MainLayout />} />
           <Route path="/card/:id" element={<CardDetail />} />
@@ -40,6 +115,8 @@ export default function App() {
           } />
         </Routes>
       </main>
+
+      <Toast message={toastMessage} visible={toastVisible} onClose={() => setToastVisible(false)} />
     </div>
   );
 }
