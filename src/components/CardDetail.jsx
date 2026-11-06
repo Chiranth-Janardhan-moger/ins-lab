@@ -42,8 +42,20 @@ export default function CardDetail() {
   const isNew = codeMode === 'new';
   const activeCode = isNew && activePart.reducedCode ? activePart.reducedCode : activePart.code;
   const activeFile = isNew && activePart.reducedFile ? activePart.reducedFile : activePart.file;
-  const activeCompileCommand = activePart.compileCommand || experiment.compileCommand;
-  const activeRunCommand = activePart.runCommand || experiment.runCommand;
+
+  const rawCompile = activePart.compileCommand || experiment.compileCommand || '';
+  const rawRun = activePart.runCommand || experiment.runCommand || '';
+  const baseName = activePart.file ? activePart.file.replace(/\.c$/, '') : '';
+  const reducedBaseName = activePart.reducedFile ? activePart.reducedFile.replace(/\.c$/, '') : '';
+
+  const activeCompileCommand = isNew && activePart.reducedFile
+    ? rawCompile.replace(new RegExp(activePart.file, 'g'), activePart.reducedFile).replace(new RegExp(`-o\\s+${baseName}\\b`, 'g'), `-o ${reducedBaseName}`)
+    : rawCompile;
+
+  const activeRunCommand = isNew && activePart.reducedFile
+    ? rawRun.replace(new RegExp(baseName, 'g'), reducedBaseName)
+    : rawRun;
+
   const activeOutput = activePart.sampleOutput || experiment.sampleOutput;
   const activeSavings = activePart.savings || experiment.savings;
 

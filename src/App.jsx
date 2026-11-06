@@ -6,13 +6,135 @@ import Toast from './components/Toast';
 import experimentsData from './data/experiments.json';
 import './App.css';
 
-function MainLayout() {
+const getReducedCompileCmd = (cmd, file, reducedFile) => {
+  if (!cmd || !file || !reducedFile) return cmd || '';
+  const baseName = file.replace(/\.c$/, '');
+  const reducedBaseName = reducedFile.replace(/\.c$/, '');
+  return cmd
+    .replace(new RegExp(file, 'g'), reducedFile)
+    .replace(new RegExp(`-o\\s+${baseName}\\b`, 'g'), `-o ${reducedBaseName}`);
+};
+
+const getReducedRunCmd = (cmd, file, reducedFile) => {
+  if (!cmd || !file || !reducedFile) return cmd || '';
+  const baseName = file.replace(/\.c$/, '');
+  const reducedBaseName = reducedFile.replace(/\.c$/, '');
+  return cmd.replace(new RegExp(baseName, 'g'), reducedBaseName);
+};
+
+const generateCombinedCode = (mode = 'new') => {
+  return experimentsData
+    .map((exp) => {
+      const formatSinglePart = (p, isPart = false) => {
+        const collegeCode = p.code || '';
+        const collegeFile = p.file || '';
+        const collegeCompile = p.compileCommand || exp.compileCommand || '';
+        const collegeRun = p.runCommand || exp.runCommand || '';
+
+        const reducedCode = p.reducedCode || p.code || '';
+        const reducedFile = p.reducedFile || p.file || '';
+        const savings = p.savings || exp.savings || '';
+        const reducedCompile = getReducedCompileCmd(collegeCompile, collegeFile, reducedFile);
+        const reducedRun = getReducedRunCmd(collegeRun, collegeFile, reducedFile);
+
+        const partTag = isPart ? ` [${p.label}]` : '';
+
+        const formatBlock = (variantLabel, file, compile, run, code, extraSavings = '') => `/* ====================================================================
+   PROGRAM ${String(exp.number).padStart(2, '0')}${partTag} (${variantLabel}): ${exp.title}
+   Technology: ${exp.technology}${extraSavings ? ` · ${extraSavings}` : ''}
+   File: ${file}
+   Compilation: ${compile}
+   Execution:   ${run}
+   ==================================================================== */
+
+${code}`;
+
+        if (mode === 'college') {
+          return formatBlock('College Manual', collegeFile, collegeCompile, collegeRun, collegeCode);
+        } else if (mode === 'new') {
+          return formatBlock('New Reduced', reducedFile, reducedCompile, reducedRun, reducedCode, savings);
+        } else {
+          // 'both'
+          const colBlock = formatBlock('College Manual', collegeFile, collegeCompile, collegeRun, collegeCode);
+          const redBlock = formatBlock('New Reduced', reducedFile, reducedCompile, reducedRun, reducedCode, savings);
+          return `${colBlock}\n\n\n${redBlock}`;
+        }
+      };
+
+      if (exp.parts && exp.parts.length > 0) {
+        return exp.parts
+          .map((p) => formatSinglePart(p, true))
+          .join('\n\n\n');
+      }
+      return formatSinglePart(exp, false);
+    })
+    .join('\n\n\n');
+};
+
+function MainLayout({ onCopyPrograms }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <h2 style={{ fontSize: '24px', fontWeight: '500', marginBottom: '10px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)', display: 'inline-block' }}></span>
-        Information and Network Security Laboratory Exercises
-      </h2>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: '500', margin: 0, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)', display: 'inline-block' }}></span>
+          Information and Network Security Laboratory Exercises
+        </h2>
+      </div>
+
+      {/* Home Quick Copy Bar */}
+      <div className="home-copy-bar glass-panel" style={{
+        padding: '16px 20px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '14px'
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', textAlign: 'left' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>
+              Copy All 5 Lab Programs
+            </span>
+            <span className="badge-pill badge-crypto" style={{ fontSize: '10px', padding: '1px 7px' }}>
+              Instant Clipboard
+            </span>
+          </div>
+          <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+            Choose between New reduced code (35%–56% shorter), College manual code, or both versions.
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button 
+            type="button"
+            onClick={() => onCopyPrograms('new')} 
+            className="glass-btn glass-btn-primary" 
+            style={{ padding: '8px 14px', fontSize: '13px' }}
+            title="Copy all 5 new reduced / optimized lab programs"
+          >
+            <span>⚡ Copy All New</span>
+          </button>
+          <button 
+            type="button"
+            onClick={() => onCopyPrograms('college')} 
+            className="glass-btn" 
+            style={{ padding: '8px 14px', fontSize: '13px' }}
+            title="Copy all 5 original college manual lab programs"
+          >
+            <span>🏛️ Copy All College</span>
+          </button>
+          <button 
+            type="button"
+            onClick={() => onCopyPrograms('both')} 
+            className="glass-btn" 
+            style={{ padding: '8px 14px', fontSize: '13px' }}
+            title="Copy all programs in both College and New versions"
+          >
+            <span>📦 Copy Both</span>
+          </button>
+        </div>
+      </div>
+
       <LabBoard />
     </div>
   );
@@ -22,59 +144,45 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [copyMenuOpen, setCopyMenuOpen] = useState(false);
+  const [copyMode, setCopyMode] = useState('new'); // 'new' | 'college' | 'both'
   const historyRef = useRef(null);
+  const copyMenuRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (historyRef.current && !historyRef.current.contains(event.target)) {
         setHistoryOpen(false);
       }
+      if (copyMenuRef.current && !copyMenuRef.current.contains(event.target)) {
+        setCopyMenuOpen(false);
+      }
     };
-    if (historyOpen) {
+    if (historyOpen || copyMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [historyOpen]);
+  }, [historyOpen, copyMenuOpen]);
 
   const showToast = (msg) => {
     setToastMessage(msg);
     setToastVisible(true);
   };
 
-  const copyAllPrograms = () => {
-    const combinedCode = experimentsData
-      .map((exp) => {
-        if (exp.parts && exp.parts.length > 0) {
-          return exp.parts
-            .map((p) => `/* ====================================================================
-   PROGRAM ${String(exp.number).padStart(2, '0')} [${p.label}]: ${exp.title}
-   Technology: ${exp.technology}
-   File: ${p.file}
-   Compilation: ${p.compileCommand || exp.compileCommand}
-   Execution:   ${p.runCommand || exp.runCommand}
-   ==================================================================== */
-
-${p.code}`)
-            .join('\n\n\n');
-        }
-        return `/* ====================================================================
-   PROGRAM ${String(exp.number).padStart(2, '0')}: ${exp.title}
-   Technology: ${exp.technology}
-   File: ${exp.file}
-   Compilation: ${exp.compileCommand}
-   Execution:   ${exp.runCommand}
-   ==================================================================== */
-
-${exp.code}`;
-      })
-      .join('\n\n\n');
+  const handleCopyPrograms = (mode = copyMode) => {
+    const combinedCode = generateCombinedCode(mode);
+    const toastMsgs = {
+      new: 'All 5 New (Reduced) Lab Programs Copied Successfully!',
+      college: 'All 5 College Lab Programs Copied Successfully!',
+      both: 'All College & New Lab Programs Copied Successfully!'
+    };
 
     navigator.clipboard.writeText(combinedCode)
-      .then(() => showToast('All 5 Lab Programs Copied Successfully!'))
+      .then(() => showToast(toastMsgs[mode] || 'Programs Copied Successfully!'))
       .catch((err) => {
-        console.error('Failed to copy all programs:', err);
+        console.error('Failed to copy programs:', err);
         showToast('Failed to copy programs to clipboard');
       });
   };
@@ -102,17 +210,121 @@ ${exp.code}`;
           </Link>
 
           <div className="portal-header-actions">
-            <button 
-              onClick={copyAllPrograms} 
-              className="glass-btn" 
-              title="Copy all 5 lab programs completely to clipboard"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Copy All Programs
-            </button>
+            {/* Copy All Programs Dropdown Menu */}
+            <div className="copy-menu-container" ref={copyMenuRef}>
+              <div className="copy-btn-group">
+                <button 
+                  type="button"
+                  onClick={() => handleCopyPrograms(copyMode)} 
+                  className="glass-btn copy-main-btn" 
+                  title={`Copy all lab programs (${copyMode === 'new' ? 'New (Reduced)' : copyMode === 'college' ? 'College' : 'Both Versions'})`}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy All Programs</span>
+                  <span className={`copy-mode-pill copy-pill-${copyMode}`}>
+                    {copyMode === 'new' ? 'New' : copyMode === 'college' ? 'College' : 'Both'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={`glass-btn copy-chevron-btn ${copyMenuOpen ? 'active' : ''}`}
+                  onClick={() => setCopyMenuOpen((prev) => !prev)}
+                  title="Choose which version to copy (New, College, or Both)"
+                  aria-label="Choose copy version"
+                  aria-expanded={copyMenuOpen}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: copyMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+              </div>
+
+              {copyMenuOpen && (
+                <div className="copy-dropdown-card fade-in">
+                  <div className="copy-dropdown-header">
+                    Choose Version to Copy
+                  </div>
+
+                  <button
+                    type="button"
+                    className={`copy-dropdown-item ${copyMode === 'new' ? 'active-mode' : ''}`}
+                    onClick={() => {
+                      setCopyMode('new');
+                      handleCopyPrograms('new');
+                      setCopyMenuOpen(false);
+                    }}
+                    title="Copy all 5 new reduced / optimized lab programs"
+                  >
+                    <div className="copy-item-left">
+                      <span className="copy-icon-circle">⚡</span>
+                      <div className="copy-item-text">
+                        <div className="copy-item-title-row">
+                          <span className="copy-item-title">New (Reduced) Code</span>
+                          <span className="badge-pill badge-crypto" style={{ fontSize: '10px', padding: '1px 6px' }}>Recommended</span>
+                        </div>
+                        <span className="copy-item-desc">35% – 56% less code · modern minimal syntax</span>
+                      </div>
+                    </div>
+                    {copyMode === 'new' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`copy-dropdown-item ${copyMode === 'college' ? 'active-mode' : ''}`}
+                    onClick={() => {
+                      setCopyMode('college');
+                      handleCopyPrograms('college');
+                      setCopyMenuOpen(false);
+                    }}
+                    title="Copy all 5 original college manual lab programs"
+                  >
+                    <div className="copy-item-left">
+                      <span className="copy-icon-circle">🏛️</span>
+                      <div className="copy-item-text">
+                        <span className="copy-item-title">College Manual Code</span>
+                        <span className="copy-item-desc">Standard lab manual reference version</span>
+                      </div>
+                    </div>
+                    {copyMode === 'college' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`copy-dropdown-item ${copyMode === 'both' ? 'active-mode' : ''}`}
+                    onClick={() => {
+                      setCopyMode('both');
+                      handleCopyPrograms('both');
+                      setCopyMenuOpen(false);
+                    }}
+                    title="Copy both College manual and New reduced programs"
+                  >
+                    <div className="copy-item-left">
+                      <span className="copy-icon-circle">📦</span>
+                      <div className="copy-item-text">
+                        <span className="copy-item-title">Both (College + New)</span>
+                        <span className="copy-item-desc">Complete bundle containing all versions</span>
+                      </div>
+                    </div>
+                    {copyMode === 'both' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
 
             <a 
               href="https://pclab26.vercel.app/" 
@@ -193,7 +405,7 @@ ${exp.code}`;
         </header>
 
         <Routes>
-          <Route path="/" element={<MainLayout />} />
+          <Route path="/" element={<MainLayout onCopyPrograms={handleCopyPrograms} />} />
           <Route path="/card/:id" element={<CardDetail />} />
           <Route path="/card/:id/*" element={<CardDetail />} />
           <Route path="/:id" element={<CardDetail />} />
